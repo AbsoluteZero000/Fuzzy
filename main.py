@@ -1,61 +1,136 @@
-def create_fuzzy_system():
-    print("1- Create a new fuzzy system\n")
-    print("2- Quit\n")
+class FuzzyVariable:
+    def __init__(self, name, vtype, vrange):
+        self.name = name
+        self.type = vtype
+        self.range = vrange
+        self.fuzzy_sets = {}
 
-    choice = input()
+    def add_fuzzy_set(self, name, ftype, values):
+        self.fuzzy_sets[name] = {'type': ftype, 'values': values}
 
-    if choice == "2":
-        return
-    while True:
-        print("""
-Main Menu:
-==========
-1- Add variables.
-2- Add fuzzy sets to an existing variable.
-3- Add rules.
-4- Run the simulation on crisp values.\n""")
+class FuzzySystem:
+    def __init__(self, name, description):
+        self.variables = {}
+        self.rules = []
 
-        choice = input()
+    def add_variable(self, variable):
+        self.variables[variable.name] = variable
 
-        if choice == "1":
-            print("""
-Enter the variable’s name, type (IN/OUT), and range ([lower, upper]):
-(Press x to finish)\n""")
-            variables = []
-            inp = input()
-            while inp != "x":
-                variables.append(inp)
-                inp = input()
+    def add_rule(self, rule):
+        self.rules.append(rule)
+    def add_fuzzy_set(self, variable_name, set_name, ftype, values):
+        self.variables[variable_name].add_fuzzy_set(set_name, ftype, values)
 
-        elif choice == "2":
-            print("Enter the variable’s name:\n")
-            variable_name = input()
+    def run_simulation(self, crisp_values):
 
-            print("Enter the fuzzy set name, type (TRI/TRAP), and values: (Press x to finish)\n")
-            fuzzy_sets = []
-            inp = input()
-            while inp != "x":
-                fuzzy_sets.append(inp)
-                inp = input()
+        # Fuzzificatio
+        #write code here
 
-        elif choice == "3":
-            print("Enter the rules in this format: (Press x to finish)\n")
-            print("IN_variable set operator IN_variable set => OUT_variable set\n")
-            rules = []
-            inp = input()
-            while inp != "x":
-                rules.append(inp)
-                inp = input()
+        print("Fuzzification => done")
+        # Inference
 
-        elif choice == "4":
-            print("Enter the crisp value:\n")
-            crisp_values = []
-            inp = input()
-            while inp != "x":
-                crisp_values.append(inp)
-                inp = input()
 
+        print("Inference => done")
+        # Defuzzification
+        weighted_sum = 0
+        total_activation = 0
+        #write code here
+
+        predicted_output = weighted_sum / total_activation
+
+        print("Defuzzification => done")
+        return predicted_output
+
+    def calculate_membership(self, value, set_values):
+        if set_values[0] == set_values[1] == set_values[2]:
+            return 1 if value == set_values[0] else 0
         else:
-            return
+            return max(0, min((value - set_values[0]) / (set_values[1] - set_values[0]),
+                              (set_values[2] - value) / (set_values[2] - set_values[1])))
 
-create_fuzzy_system()
+    def calculate_centroid(self, set_values):
+        return (set_values[0] + set_values[1] + set_values[2]) / 3
+
+def get_user_input_fuzzy_set(var_name):
+    fuzzy_sets = {}
+    print(f"Enter fuzzy sets for variable '{var_name}': (Press 'x' to finish)")
+    while True:
+        set_name = input("Set name: ")
+        if set_name.lower() == 'x':
+            break
+        ftype = input("Set type (TRI/TRAP): ")
+        values = [float(val) for val in input("Set values (comma-separated): ").split()]
+        fuzzy_sets[set_name] = {'type': ftype, 'values': values}
+    return fuzzy_sets
+
+def get_user_input_rule(variables):
+    rules = []
+    print("Enter rules: (Press 'x' to finish)")
+    while True:
+        rule_input = input("Enter the rule in this format (IN_variable set operator IN_variable set => OUT_variable set): ")
+        if rule_input.lower() == 'x':
+            break
+        rule_parts = rule_input.split()
+        if len(rule_parts) == 8 and rule_parts[1] in variables and rule_parts[5] in variables and rule_parts[7] in variables:
+            rule = {'inputs': [(rule_parts[1], rule_parts[2]), (rule_parts[5], rule_parts[6])],
+                    'output': (rule_parts[7], rule_parts[8])}
+            rules.append(rule)
+        else:
+            print("Invalid input. Please check the format and variable names.")
+    return rules
+
+
+
+
+
+if __name__ == "__main__":
+    choice = input("Enter 1 to create a new fuzzy system or 2 to quit: ")
+
+    if(choice == "2"):
+        exit()
+
+    fuzzy_system = FuzzySystem()
+
+    while True:
+        choice = input("1- add variables\n2- add fuzzy sets\n3- add rules\n4- run simulation\n")
+
+
+        #adding variables to the fuzzy system
+        if choice == "1":
+            var_name = input("Enter the variable's name (Press 'x' to finish): ")
+            if var_name.lower() == 'x':
+                break
+            var_type = input("Enter the variable type (IN/OUT): ")
+            var_range = [float(val) for val in input("Enter the variable range (lower upper): ").split()]
+            variable = FuzzyVariable(var_name, var_type, var_range)
+            fuzzy_sets = get_user_input_fuzzy_set(var_name)
+            for set_name, set_data in fuzzy_sets.items():
+                variable.add_fuzzy_set(set_name, set_data['type'], set_data['values'])
+            fuzzy_system.add_variable(variable)
+
+        #adding fuzzy sets to the fuzzy Variables
+        if choice == "2":
+            var_name = input("Enter the variable's name: ")
+
+            fuzzy_sets = get_user_input_fuzzy_set(var_name)
+            for set_name, set_data in fuzzy_sets.items():
+                fuzzy_system.add_fuzzy_set(var_name, set_name, set_data['type'], set_data['values'])
+
+        #adding rules to the fuzzy system
+        elif choice == "3":
+            fuzzy_rules = get_user_input_rule(fuzzy_system.variables)
+            for rule in fuzzy_rules:
+                fuzzy_system.add_rule(rule)
+
+        # running on crisp values
+        elif choice == "4":
+            crisp_values = {}
+            for var_name in fuzzy_system.variables:
+                value = float(input(f"Enter the crisp value for {var_name}: "))
+                crisp_values[var_name] = value
+
+            print("Running the simulation...")
+            predicted_output = fuzzy_system.run_simulation(crisp_values)
+
+            print(f"The predicted output is: {predicted_output}")
+            break
