@@ -46,11 +46,20 @@ class FuzzySystem:
         # Defuzzification
         weighted_sum = 0
         total_activation = 0
+########################################################################################################################
+        for output_variable,output_set in self.rules[0]['output']:
+            for var_name, sets in fuzzified_values.items():
+                membership=sets[output_set]
+                centroid=self.calculate_centroid(self.variables[var_name].fuzzy_sets[output_set]['values'])
+                weighted_sum+=membership*centroid
+                total_membership+=membership
+
+        predicted_output = weighted_sum/total_membership if total_membership != 0 else 0
 
 
         print("Defuzzification => done")
         return predicted_output
-
+##########################################################################################################################
     def calculate_membership(self, value, fuzzy_set):
         ftype = fuzzy_set['type']
         if ftype == 'TRI':
