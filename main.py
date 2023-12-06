@@ -27,85 +27,50 @@ class FuzzySystem:
     def add_fuzzy_set(self, variable_name, set_name, ftype, values):
         self.variables[variable_name].add_fuzzy_set(set_name, ftype, values)
 
-    def fuzzification(variable, crisp_value):
-        output = []
-        if variable.type != "OUT":
-            for fuzzy_set in variable.fuzzy_sets:
-                x_points = []
-                y_points = []
-                if fuzzy_set.type == "TRI":
-                    x_points.append(fuzzy_set.values["x1"])
-                    x_points.append(fuzzy_set.values["x2"])
-                    x_points.append(fuzzy_set.values["x3"])
-                    if fuzzy_set.values["x1"] == fuzzy_set.values["x2"]:
-                        y_points.append(1)
-                        y_points.append(1)
-                        y_points.append(0)
-                    elif fuzzy_set.values["x2"] == fuzzy_set.values["x3"]:
-                        y_points.append(0)
-                        y_points.append(1)
-                        y_points.append(1)
-                    else:
-                        y_points.append(0)
-                        y_points.append(1)
-                        y_points.append(0)
-                    triangle = Triangle(x_points, y_points, crisp_value)
-                    output.append(triangle.fuzzification())
-                elif fuzzy_set.type == "TRAP":
-                    x_points.append(fuzzy_set.values["x1"])
-                    x_points.append(fuzzy_set.values["x2"])
-                    x_points.append(fuzzy_set.values["x3"])
-                    x_points.append(fuzzy_set.values["x4"])
-                    if fuzzy_set.values["x1"] == fuzzy_set.values["x2"]:
-                        y_points.append(1)
-                        y_points.append(1)
-                        y_points.append(1)
-                        y_points.append(0)
-                    elif fuzzy_set.values["x3"] == fuzzy_set.values["x4"]:
-                        y_points.append(0)
-                        y_points.append(1)
-                        y_points.append(1)
-                        y_points.append(1)
-                    else:
-                        y_points.append(0)
-                        y_points.append(1)
-                        y_points.append(1)
-                        y_points.append(0)
-                    trapezoid = Trapezoid(x_points, y_points, crisp_value)
-                    output.append(trapezoid.fuzzification())
-        return output
+
 
     def run_simulation(self, crisp_values):
-        # Fuzzification
-        # write code here
+        fuzzified_values = {}
+        for var_name, value in crisp_values.items():
+            fuzzified_values[var_name] = {}
+            for set_name, fuzzy_set in self.variables[var_name].fuzzy_sets.items():
+                fuzzified_values[var_name][set_name] = self.calculate_membership(value, fuzzy_set['values'])
+
         for variable in self.variables:
             break
         print("Fuzzification => done")
         # Inference
 
         print("Inference => done")
+
         # Defuzzification
         weighted_sum = 0
         total_activation = 0
-        # write code here
 
-        predicted_output = weighted_sum / total_activation
 
         print("Defuzzification => done")
         return predicted_output
 
-    def calculate_membership(self, value, set_values):
-        if set_values[0] == set_values[1] == set_values[2]:
-            return 1 if value == set_values[0] else 0
+    def calculate_membership(self, value, fuzzy_set):
+        ftype = fuzzy_set['type']
+        if ftype == 'TRI':
+            return self.membership_triangle(value, fuzzy_set['values'])
+        elif ftype == 'TRAP':
+            return self.membership_trapezoid(value, fuzzy_set['values'])
         else:
-            return max(
-                0,
-                min(
-                    (value - set_values[0]) / (set_values[1] - set_values[0]),
-                    (set_values[2] - value) / (set_values[2] - set_values[1]),
-                ),
-            )
+            raise ValueError("Invalid fuzzy set type")
 
+    def membership_triangle(self, value, set_values):
+        return max(0, min((value - set_values[0]) / (set_values[1] - set_values[0]),
+                          (set_values[2] - value) / (set_values[2] - set_values[1])))
+
+    def membership_trapezoid(self, value, set_values):
+        return max(0, min((value - set_values[0]) / (set_values[1] - set_values[0]),
+                          1,
+                          (set_values[3] - value) / (set_values[3] - set_values[2])))
+
+    def calculate_centroid(self, set_values):
+            return sum(set_values) / len(set_values)
 
 def get_user_input_fuzzy_set(var_name):
     fuzzy_sets = {}
