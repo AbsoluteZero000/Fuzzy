@@ -27,6 +27,15 @@ class Triangle:
                 )
             b = self.y_points[1] - (slope * self.x_points[1])
             return (slope * self.tmp) + b
+        elif self.tmp > self.x_points[2] and self.tmp <= self.x_points[3]:
+            if self.x_points[2] == self.x_points[3]:
+                slope = 1
+            else:
+                slope = (self.y_points[3] - self.y_points[2]) / (
+                    self.x_points[3] - self.x_points[2]
+                )
+            b = self.y_points[2] - (slope * self.x_points[2])
+            return (slope * self.tmp) + b
         else:
             return 0
 
