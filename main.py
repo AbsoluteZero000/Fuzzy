@@ -36,11 +36,17 @@ class FuzzySystem:
             for set_name, fuzzy_set in self.variables[var_name].fuzzy_sets.items():
                 fuzzified_values[var_name][set_name] = self.calculate_membership(value, fuzzy_set['values'])
 
-        for variable in self.variables:
-            break
+
+        print(fuzzified_values)
+
         print("Fuzzification => done")
         # Inference
-
+        aggregated_rules = []
+        for rule in self.rules:
+            inputs = [fuzzified_values[var][set_name] for var, set_name in rule['inputs']]
+            min_activation = min(inputs)
+            output = (rule['output'][0], rule['output'][1], min_activation)
+            aggregated_rules.append(output)
         print("Inference => done")
 
         # Defuzzification
