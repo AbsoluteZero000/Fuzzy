@@ -76,7 +76,7 @@ class FuzzySystem:
         weighted_sum = 0
         total_activation = 0
 
-        for output_variable, output_set in self.rules[0]["output"]:
+        for output_variable, output_set in self.rules["output"][0]:
             for var_name, sets in fuzzified_values.items():
                 membership = sets[output_set]
                 centroid = self.calculate_centroid(
@@ -125,7 +125,7 @@ class FuzzySystem:
                 slope = (y_points[1] - y_points[0]) / (x_points[1] - x_points[0])
             b = y_points[0] - (slope * x_points[0])
             return (slope * value) + b
-        elif value > x_points[1] and value <= x_points[2]:
+        if value > x_points[1] and value <= x_points[2]:
             if x_points[1] == x_points[2]:
                 slope = 1
             else:
