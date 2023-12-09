@@ -125,7 +125,7 @@ class FuzzySystem:
                 slope = (y_points[1] - y_points[0]) / (x_points[1] - x_points[0])
             b = y_points[0] - (slope * x_points[0])
             return (slope * value) + b
-        if value > x_points[1] and value <= x_points[2]:
+        elif value > x_points[1] and value <= x_points[2]:
             if x_points[1] == x_points[2]:
                 slope = 1
             else:
