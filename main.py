@@ -1,7 +1,3 @@
-import Triangle
-import Trapezoid
-
-
 class FuzzyVariable:
     def __init__(self, name, vtype, vrange):
         self.name = name
@@ -27,15 +23,14 @@ class FuzzySystem:
     def add_fuzzy_set(self, variable_name, set_name, ftype, values):
         self.variables[variable_name].add_fuzzy_set(set_name, ftype, values)
 
-
-
     def run_simulation(self, crisp_values):
         fuzzified_values = {}
         for var_name, value in crisp_values.items():
             fuzzified_values[var_name] = {}
             for set_name, fuzzy_set in self.variables[var_name].fuzzy_sets.items():
-                fuzzified_values[var_name][set_name] = self.calculate_membership(value, fuzzy_set)
-
+                fuzzified_values[var_name][set_name] = self.calculate_membership(
+                    value, fuzzy_set
+                )
 
         print(fuzzified_values)
 
@@ -81,39 +76,112 @@ class FuzzySystem:
         weighted_sum = 0
         total_activation = 0
 
-        for output_variable,output_set in self.rules[0]['output']:
+        for output_variable, output_set in self.rules[0]["output"]:
             for var_name, sets in fuzzified_values.items():
-                membership=sets[output_set]
-                centroid=self.calculate_centroid(self.variables[var_name].fuzzy_sets[output_set]['values'])
-                weighted_sum+=membership*centroid
-                total_membership+=membership
+                membership = sets[output_set]
+                centroid = self.calculate_centroid(
+                    self.variables[var_name].fuzzy_sets[output_set]["values"]
+                )
+                weighted_sum += membership * centroid
+                total_membership += membership
 
-        predicted_output = weighted_sum/total_membership if total_membership != 0 else 0
-
+        predicted_output = (
+            weighted_sum / total_membership if total_membership != 0 else 0
+        )
 
         print("Defuzzification => done")
-        return output_variable +" "+ predicted_output
+        return output_variable + " " + predicted_output
 
     def calculate_membership(self, value, fuzzy_set):
-        ftype = fuzzy_set['type']
-        if ftype == 'TRI':
-            return self.membership_triangle(value, fuzzy_set['values'])
-        elif ftype == 'TRAP':
-            return self.membership_trapezoid(value, fuzzy_set['values'])
+        ftype = fuzzy_set["type"]
+        if ftype == "TRI":
+            return self.membership_triangle(value, fuzzy_set["values"])
+        elif ftype == "TRAP":
+            return self.membership_trapezoid(value, fuzzy_set["values"])
         else:
             raise ValueError("Invalid fuzzy set type")
 
     def membership_triangle(self, value, set_values):
-        return max(0, min((value - set_values[0]) / (set_values[1] - set_values[0]),
-                          (set_values[2] - value) / (set_values[2] - set_values[1])))
+        x_points = set_values
+        y_points = []
+        if x_points[0] == x_points[1]:
+            y_points.append(1)
+            y_points.append(1)
+            y_points.append(0)
+        elif x_points[1] == x_points[2]:
+            y_points.append(0)
+            y_points.append(1)
+            y_points.append(1)
+        else:
+            y_points.append(0)
+            y_points.append(1)
+            y_points.append(0)
+        slope = 0.0
+        b = 0
+        if value > x_points[0] and value <= x_points[1]:
+            if x_points[0] == x_points[1]:
+                slope = 1
+            else:
+                slope = (y_points[1] - y_points[0]) / (x_points[1] - x_points[0])
+            b = y_points[0] - (slope * x_points[0])
+            return (slope * value) + b
+        elif value > x_points[1] and value <= x_points[2]:
+            if x_points[1] == x_points[2]:
+                slope = 1
+            else:
+                slope = (y_points[2] - y_points[1]) / (x_points[2] - x_points[1])
+            b = y_points[1] - (slope * x_points[1])
+            return (slope * value) + b
+        else:
+            return 0
 
     def membership_trapezoid(self, value, set_values):
-        return max(0, min((value - set_values[0]) / (set_values[1] - set_values[0]),
-                          1,
-                          (set_values[3] - value) / (set_values[3] - set_values[2])))
+        x_points = set_values
+        y_points = []
+        if x_points[0] == x_points[1]:
+            y_points.append(1)
+            y_points.append(1)
+            y_points.append(1)
+            y_points.append(0)
+        elif x_points[1] == x_points[2]:
+            y_points.append(0)
+            y_points.append(1)
+            y_points.append(1)
+            y_points.append(1)
+        else:
+            y_points.append(0)
+            y_points.append(1)
+            y_points.append(1)
+            y_points.append(0)
+        slope = 0.0
+        b = 0
+        if value > x_points[0] and value <= x_points[1]:
+            if x_points[0] == x_points[1]:
+                slope = 1
+            else:
+                slope = (y_points[1] - y_points[0]) / (x_points[1] - x_points[0])
+            b = y_points[0] - (slope * x_points[0])
+            return (slope * value) + b
+        elif value > x_points[1] and value <= x_points[2]:
+            if x_points[1] == x_points[2]:
+                slope = 1
+            else:
+                slope = (y_points[2] - y_points[1]) / (x_points[2] - x_points[1])
+            b = y_points[1] - (slope * x_points[1])
+            return (slope * value) + b
+        elif value > x_points[2] and value <= x_points[3]:
+            if x_points[2] == x_points[3]:
+                slope = 1
+            else:
+                slope = (y_points[3] - y_points[2]) / (x_points[3] - x_points[2])
+            b = y_points[2] - (slope * x_points[2])
+            return (slope * value) + b
+        else:
+            return 0
 
     def calculate_centroid(self, set_values):
-            return sum(set_values) / len(set_values)
+        return sum(set_values) / len(set_values)
+
 
 def get_user_input_fuzzy_set(var_name):
     fuzzy_sets = {}
@@ -168,7 +236,7 @@ if __name__ == "__main__":
         )
 
         if choice == "1":
-            while(True):
+            while True:
                 var_name = input("Enter the variable's name (Press 'x' to finish): ")
                 if var_name.lower() == "x":
                     break
@@ -200,7 +268,6 @@ if __name__ == "__main__":
         elif choice == "4":
             crisp_values = {}
             for var_name in fuzzy_system.variables:
-
                 value = float(input(f"Enter the crisp value for {var_name}: "))
                 crisp_values[var_name] = value
 
