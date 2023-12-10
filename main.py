@@ -28,7 +28,6 @@ class FuzzySystem:
         for var_name, value in crisp_values.items():
             fuzzified_values[var_name] = {}
             for set_name, fuzzy_set in self.variables[var_name].fuzzy_sets.items():
-                print(fuzzy_set)
                 fuzzified_values[var_name][set_name] = self.calculate_membership(
                     value, fuzzy_set
                 )
@@ -71,8 +70,9 @@ class FuzzySystem:
                     rule["inputs"][i - 1] = max(
                         rule["inputs"][i - 1], rule["inputs"][i + 1]
                     )
-                    rule["inputs"].pop(i + 1)
-                    rule["inputs"].pop(i + 1)
+                    print(rule["inputs"])
+                    rule["inputs"].pop(i)
+                    rule["inputs"].pop(i)
 
             min_activation = rule["inputs"][0]
             output = (rule["output"][0], rule["output"][1], min_activation)
@@ -86,7 +86,6 @@ class FuzzySystem:
             for set_name, fuzzy_set in self.variables[
                 output_variable
             ].fuzzy_sets.items():
-                print(self.variables[output_variable].fuzzy_sets)
                 membership = self.calculate_membership(
                     value, self.variables[output_variable].fuzzy_sets[output_set]
                 )
@@ -97,21 +96,21 @@ class FuzzySystem:
             weighted_sum += membership * centroid
             total_membership += membership
 
-        predicted_output = (
-            weighted_sum / total_membership if total_membership != 0 else 0
-        )
+        predicted_output = weighted_sum / total_membership if total_membership != 0 else 0
+
 
         print("Defuzzification => done")
         maximumValue = 0.0
         fuzzySet = ""
+
         for set_name, fuzzy_set in self.variables[output_variable].fuzzy_sets.items():
-            fuzzified_values[output_variable][set_name] = self.calculate_membership(
-                value, fuzzy_set
-            )
-            if fuzzified_values[output_variable][set_name] >= maximumValue:
-                maximumValue = fuzzified_values[output_variable][set_name]
-                fuzzySet = fuzzy_set
-        return str(output_variable) + " " + fuzzySet + " " + str(predicted_output)
+            fuzzifiedOutput = self.calculate_membership(value, fuzzy_set)
+            if fuzzifiedOutput >= maximumValue:
+                maximumValue = fuzzifiedOutput
+                fuzzySet = set_name
+
+        #can you use the fuzzy set to get the set name that belongs to predictied output
+        return output_variable + " " + fuzzySet + " " + str(predicted_output)
 
     def calculate_membership(self, value, fuzzy_set):
         ftype = fuzzy_set["type"]
@@ -278,7 +277,6 @@ def get_user_input_rule(variables):
         if valid == False:
             print("Invalid rule format")
             continue
-        print(rule)
         rules.append(rule)
     return rules
 
@@ -340,6 +338,8 @@ if __name__ == "__main__":
         elif choice == "4":
             crisp_values = {}
             for var_name in fuzzy_system.variables:
+                if(fuzzy_system.variables[var_name].type == "OUT"):
+                    continue
                 value = float(input(f"Enter the crisp value for {var_name}: "))
                 while (
                     fuzzy_system.variables[var_name].range[1] < value
@@ -350,11 +350,7 @@ if __name__ == "__main__":
                 crisp_values[var_name] = value
 
             print("Running the simulation...")
-            try:
-                predicted_output = fuzzy_system.run_simulation(crisp_values)
+            predicted_output = fuzzy_system.run_simulation(crisp_values)
 
-                print(f"The predicted output is: {predicted_output}")
-                break
-            except:
-                print("make sure to add needed variables")
-                continue
+            print(f"The predicted output is: {predicted_output}")
+            break
