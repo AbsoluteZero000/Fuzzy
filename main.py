@@ -29,46 +29,50 @@ class FuzzySystem:
             fuzzified_values[var_name] = {}
             for set_name, fuzzy_set in self.variables[var_name].fuzzy_sets.items():
                 print(fuzzy_set)
-                fuzzified_values[var_name][set_name] = self.calculate_membership(value, fuzzy_set)
+                fuzzified_values[var_name][set_name] = self.calculate_membership(
+                    value, fuzzy_set
+                )
 
         print("Fuzzification => done")
         # Inference
         aggregated_rules = []
         for rule in self.rules:
-
             for i in range(0, len(rule["inputs"]), 1):
                 if i == len(rule["inputs"]):
                     break
-                if(rule["inputs"][i] in self.variables):
-                    rule["inputs"][i] = fuzzified_values[rule["inputs"][i]][rule["inputs"][i+1]]
-                    rule["inputs"].pop(i+1)
-
+                if rule["inputs"][i] in self.variables:
+                    rule["inputs"][i] = fuzzified_values[rule["inputs"][i]][
+                        rule["inputs"][i + 1]
+                    ]
+                    rule["inputs"].pop(i + 1)
 
             for i in range(0, len(rule["inputs"]), 1):
                 if i >= len(rule["inputs"]):
                     break
-                if(rule["inputs"][i] == "not"):
-                    rule["inputs"][i] = 1- rule["inputs"][i + 1]
-                    rule["inputs"].pop(i+1)
-
-
+                if rule["inputs"][i] == "not":
+                    rule["inputs"][i] = 1 - rule["inputs"][i + 1]
+                    rule["inputs"].pop(i + 1)
 
             # Apply precedence of operators
             for i in range(0, len(rule["inputs"]), 1):
                 if i >= len(rule["inputs"]):
                     break
-                if(rule["inputs"][i] == "and"):
-                    rule["inputs"][i-1] = min(rule["inputs"][i-1], rule["inputs"][i + 1])
+                if rule["inputs"][i] == "and":
+                    rule["inputs"][i - 1] = min(
+                        rule["inputs"][i - 1], rule["inputs"][i + 1]
+                    )
                     rule["inputs"].pop(i)
                     rule["inputs"].pop(i)
 
             for i in range(0, len(rule["inputs"]), 1):
                 if i >= len(rule["inputs"]):
                     break
-                if(rule["inputs"][i] == "or"):
-                    rule["inputs"][i-1] = max(rule["inputs"][i-1], rule["inputs"][i + 1])
-                    rule["inputs"].pop(i+1)
-                    rule["inputs"].pop(i+1)
+                if rule["inputs"][i] == "or":
+                    rule["inputs"][i - 1] = max(
+                        rule["inputs"][i - 1], rule["inputs"][i + 1]
+                    )
+                    rule["inputs"].pop(i + 1)
+                    rule["inputs"].pop(i + 1)
 
             min_activation = rule["inputs"][0]
             output = (rule["output"][0], rule["output"][1], min_activation)
@@ -79,11 +83,17 @@ class FuzzySystem:
         weighted_sum = 0
         total_membership = 0
         for output_variable, output_set, value in aggregated_rules:
-            for set_name, fuzzy_set in self.variables[output_variable].fuzzy_sets.items():
+            for set_name, fuzzy_set in self.variables[
+                output_variable
+            ].fuzzy_sets.items():
                 print(self.variables[output_variable].fuzzy_sets)
-                membership = self.calculate_membership(value, self.variables[output_variable].fuzzy_sets[output_set])
+                membership = self.calculate_membership(
+                    value, self.variables[output_variable].fuzzy_sets[output_set]
+                )
 
-            centroid = self.calculate_centroid(self.variables[output_variable].fuzzy_sets[output_set]["values"])
+            centroid = self.calculate_centroid(
+                self.variables[output_variable].fuzzy_sets[output_set]["values"]
+            )
             weighted_sum += membership * centroid
             total_membership += membership
 
@@ -185,15 +195,31 @@ class FuzzySystem:
         return sum(set_values) / len(set_values)
 
 
-def get_user_input_fuzzy_set(var_name):
+def get_user_input_fuzzy_set(var_name, variables):
     fuzzy_sets = {}
     print(f"Enter fuzzy sets for variable '{var_name}': (Press 'x' to finish)")
     while True:
+        valid = True
         set_name = input("Set name: ")
         if set_name.lower() == "x":
             break
+        if set_name in fuzzy_sets:
+            print("Set already exists. Please enter a different name.")
+            continue
         ftype = input("Set type (TRI/TRAP): ")
+        if ftype.lower() != "trap" and ftype.lower() != "tri":
+            print("Set type must be either TRI or TRAP")
+            continue
         values = [float(val) for val in input("Set values: ").split()]
+        var = variables[var_name]
+        for value in values:
+            if value > var.range[1] or value < var.range[0]:
+                valid = False
+                break
+        if valid == False:
+            print("Set values must be within range")
+            valid = True
+            continue
         fuzzy_sets[set_name] = {"type": ftype, "values": values}
     return fuzzy_sets
 
@@ -242,21 +268,34 @@ if __name__ == "__main__":
                 var_name = input("Enter the variable's name (Press 'x' to finish): ")
                 if var_name.lower() == "x":
                     break
+                if var_name in fuzzy_system.variables:
+                    print("var name mustn't exist in the variables")
+                    continue
                 var_type = input("Enter the variable type (IN/OUT): ")
+                if var_type.lower() != "in" and var_type.lower() != "out":
+                    print("var type must be either in or out")
+                    continue
                 var_range = [
                     float(val)
                     for val in input("Enter the variable range (lower upper): ").split()
                 ]
+                if len(var_range) > 2 or var_range[0] > var_range[1]:
+                    print("enter a valid ranges")
+                    continue
                 variable = FuzzyVariable(var_name, var_type, var_range)
 
                 fuzzy_system.add_variable(variable)
 
         if choice == "2":
             var_name = input("Enter the variable's name: ")
-
-            fuzzy_sets = get_user_input_fuzzy_set(var_name)
+            if var_name not in fuzzy_system.variables:
+                print("var name must exist in the variables")
+                continue
+            fuzzy_sets = get_user_input_fuzzy_set(var_name, fuzzy_system.variables)
             for set_name, set_data in fuzzy_sets.items():
-                fuzzy_system.add_fuzzy_set(var_name, set_name, set_data["type"], set_data["values"])
+                fuzzy_system.add_fuzzy_set(
+                    var_name, set_name, set_data["type"], set_data["values"]
+                )
 
         # adding rules to the fuzzy system
         elif choice == "3":
