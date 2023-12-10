@@ -57,3 +57,6 @@ proj_funding medium and exp_level beginner => risk normal
 proj_funding low and exp_level beginner => risk high
 proj_funding very_low and_not exp_level expert => risk high
 x
+4
+50
+40
