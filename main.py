@@ -32,41 +32,47 @@ class FuzzySystem:
                     value, fuzzy_set
                 )
 
-        print(fuzzified_values)
-
         print("Fuzzification => done")
         # Inference
         aggregated_rules = []
         for rule in self.rules:
-            inputs = []
-            for i in range(0, len(rule["inputs"]), 2):
-                input_var = rule["inputs"][i]
-                input_set = rule["inputs"][i + 1]
-                not_flag = False
-                if input_var.lower() == "not":
-                    not_flag = True
-                    input_var = rule["inputs"][i + 1]
-                    input_set = rule["inputs"][i + 2]
 
-                membership = fuzzified_values[input_var][input_set]
-                inputs.append(not membership if not_flag else membership)
+            for i in range(0, len(rule["inputs"]), 1):
+                if i == len(rule["inputs"]):
+                    break
+                if(rule["inputs"][i] in self.variables):
+                    rule["inputs"][i] = fuzzified_values[rule["inputs"][i]][rule["inputs"][i+1]]
+                    rule["inputs"].pop(i+1)
 
-            operators = rule["operators"]
+
+            for i in range(0, len(rule["inputs"]), 1):
+                if i >= len(rule["inputs"]):
+                    break
+                if(rule["inputs"][i] == "not"):
+                    rule["inputs"][i] = 1- rule["inputs"][i + 1]
+                    rule["inputs"].pop(i+1)
+
+
 
             # Apply precedence of operators
-            while "and" in operators:
-                index = operators.index("and")
-                inputs[index] = min(inputs[index], inputs[index + 1])
-                inputs.pop(index + 1)
-                operators.pop(index)
+            for i in range(0, len(rule["inputs"]), 1):
+                if i >= len(rule["inputs"]):
+                    break
+                if(rule["inputs"][i] == "and"):
+                    rule["inputs"][i-1] = min(rule["inputs"][i-1], rule["inputs"][i + 1])
+                    rule["inputs"].pop(i)
+                    rule["inputs"].pop(i)
 
-            while "or" in operators:
-                index = operators.index("or")
-                inputs[index] = max(inputs[index], inputs[index + 1])
-                inputs.pop(index + 1)
-                operators.pop(index)
+            for i in range(0, len(rule["inputs"]), 1):
+                if i >= len(rule["inputs"]):
+                    break
+                if(rule["inputs"][i] == "or"):
+                    rule["inputs"][i-1] = min(rule["inputs"][i-1], rule["inputs"][i + 1])
+                    rule["inputs"].pop(i+1)
+                    rule["inputs"].pop(i+1)
 
-            min_activation = min(inputs)
+            print(rule)
+            min_activation = rule["inputs"][0]
             output = (rule["output"][0], rule["output"][1], min_activation)
             aggregated_rules.append(output)
 
@@ -74,9 +80,8 @@ class FuzzySystem:
 
         # Defuzzification
         weighted_sum = 0
-        total_activation = 0
 
-        for output_variable, output_set in self.rules["output"][0]:
+        for output_variable, output_set, value in aggregated_rules:
             for var_name, sets in fuzzified_values.items():
                 membership = sets[output_set]
                 centroid = self.calculate_centroid(
@@ -211,7 +216,7 @@ def get_user_input_rule(variables):
 
         if len(rule_parts) >= 8 and (len(rule_parts) - 2) % 3 == 0:
             rule = {
-                "inputs": rule_parts,
+                "inputs": rule_parts[:-3],
                 "output": (rule_parts[-2], rule_parts[-1]),
             }
             print(rule)

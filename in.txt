@@ -38,7 +38,7 @@ TRAP
 70 90 100 100
 x
 3
-a high and b low => c high
+a expert and b low => c high
 x
 4
 50
