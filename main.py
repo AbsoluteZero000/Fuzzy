@@ -28,9 +28,8 @@ class FuzzySystem:
         for var_name, value in crisp_values.items():
             fuzzified_values[var_name] = {}
             for set_name, fuzzy_set in self.variables[var_name].fuzzy_sets.items():
-                fuzzified_values[var_name][set_name] = self.calculate_membership(
-                    value, fuzzy_set
-                )
+                print(fuzzy_set)
+                fuzzified_values[var_name][set_name] = self.calculate_membership(value, fuzzy_set)
 
         print("Fuzzification => done")
         # Inference
@@ -67,35 +66,33 @@ class FuzzySystem:
                 if i >= len(rule["inputs"]):
                     break
                 if(rule["inputs"][i] == "or"):
-                    rule["inputs"][i-1] = min(rule["inputs"][i-1], rule["inputs"][i + 1])
+                    rule["inputs"][i-1] = max(rule["inputs"][i-1], rule["inputs"][i + 1])
                     rule["inputs"].pop(i+1)
                     rule["inputs"].pop(i+1)
 
-            print(rule)
             min_activation = rule["inputs"][0]
             output = (rule["output"][0], rule["output"][1], min_activation)
             aggregated_rules.append(output)
-
         print("Inference => done")
 
         # Defuzzification
         weighted_sum = 0
-
+        total_membership = 0
         for output_variable, output_set, value in aggregated_rules:
-            for var_name, sets in fuzzified_values.items():
-                membership = sets[output_set]
-                centroid = self.calculate_centroid(
-                    self.variables[var_name].fuzzy_sets[output_set]["values"]
-                )
-                weighted_sum += membership * centroid
-                total_membership += membership
+            for set_name, fuzzy_set in self.variables[output_variable].fuzzy_sets.items():
+                print(self.variables[output_variable].fuzzy_sets)
+                membership = self.calculate_membership(value, self.variables[output_variable].fuzzy_sets[output_set])
+
+            centroid = self.calculate_centroid(self.variables[output_variable].fuzzy_sets[output_set]["values"])
+            weighted_sum += membership * centroid
+            total_membership += membership
 
         predicted_output = (
             weighted_sum / total_membership if total_membership != 0 else 0
         )
 
         print("Defuzzification => done")
-        return output_variable + " " + predicted_output
+        return str(output_variable) + " " + str(predicted_output)
 
     def calculate_membership(self, value, fuzzy_set):
         ftype = fuzzy_set["type"]
@@ -259,9 +256,7 @@ if __name__ == "__main__":
 
             fuzzy_sets = get_user_input_fuzzy_set(var_name)
             for set_name, set_data in fuzzy_sets.items():
-                fuzzy_system.add_fuzzy_set(
-                    var_name, set_name, set_data["type"], set_data["values"]
-                )
+                fuzzy_system.add_fuzzy_set(var_name, set_name, set_data["type"], set_data["values"])
 
         # adding rules to the fuzzy system
         elif choice == "3":
