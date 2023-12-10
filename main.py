@@ -36,42 +36,40 @@ class FuzzySystem:
         # Inference
         aggregated_rules = []
         for rule in self.rules:
+
             for i in range(0, len(rule["inputs"]), 1):
                 if i == len(rule["inputs"]):
                     break
-                if rule["inputs"][i] in self.variables:
-                    rule["inputs"][i] = fuzzified_values[rule["inputs"][i]][
-                        rule["inputs"][i + 1]
-                    ]
-                    rule["inputs"].pop(i + 1)
+                if(rule["inputs"][i] in self.variables):
+                    rule["inputs"][i] = fuzzified_values[rule["inputs"][i]][rule["inputs"][i+1]]
+                    rule["inputs"].pop(i+1)
+
 
             for i in range(0, len(rule["inputs"]), 1):
                 if i >= len(rule["inputs"]):
                     break
-                if rule["inputs"][i] == "not":
-                    rule["inputs"][i] = 1 - rule["inputs"][i + 1]
-                    rule["inputs"].pop(i + 1)
+                if(rule["inputs"][i] == "not"):
+                    rule["inputs"][i] = 1- rule["inputs"][i + 1]
+                    rule["inputs"].pop(i+1)
+
+
 
             # Apply precedence of operators
             for i in range(0, len(rule["inputs"]), 1):
                 if i >= len(rule["inputs"]):
                     break
-                if rule["inputs"][i] == "and":
-                    rule["inputs"][i - 1] = min(
-                        rule["inputs"][i - 1], rule["inputs"][i + 1]
-                    )
+                if(rule["inputs"][i] == "and"):
+                    rule["inputs"][i-1] = min(rule["inputs"][i-1], rule["inputs"][i + 1])
                     rule["inputs"].pop(i)
                     rule["inputs"].pop(i)
 
             for i in range(0, len(rule["inputs"]), 1):
                 if i >= len(rule["inputs"]):
                     break
-                if rule["inputs"][i] == "or":
-                    rule["inputs"][i - 1] = max(
-                        rule["inputs"][i - 1], rule["inputs"][i + 1]
-                    )
-                    rule["inputs"].pop(i + 1)
-                    rule["inputs"].pop(i + 1)
+                if(rule["inputs"][i] == "or"):
+                    rule["inputs"][i-1] = min(rule["inputs"][i-1], rule["inputs"][i + 1])
+                    rule["inputs"].pop(i+1)
+                    rule["inputs"].pop(i+1)
 
             print(rule)
             min_activation = rule["inputs"][0]
@@ -190,7 +188,7 @@ class FuzzySystem:
         return sum(set_values) / len(set_values)
 
 
-def get_user_input_fuzzy_set(var_name, variables):
+def get_user_input_fuzzy_set(var_name):
     fuzzy_sets = {}
     print(f"Enter fuzzy sets for variable '{var_name}': (Press 'x' to finish)")
     while True:
@@ -198,19 +196,8 @@ def get_user_input_fuzzy_set(var_name, variables):
         if set_name.lower() == "x":
             break
         ftype = input("Set type (TRI/TRAP): ")
-        if ftype.upper() != "TRI" or ftype.upper() != "TRAP":
-            print("Type must be either TRI or TRAP")
-        else:
-            values = [float(val) for val in input("Set values: ").split()]
-            var = variables[var_name]
-            valid = True
-            for value in values:
-                if value > var.range[1] or value < var.range[0]:
-                    valid = False
-            if valid == True:
-                fuzzy_sets[set_name] = {"type": ftype, "values": values}
-            else:
-                print("fuzzy values must be between range")
+        values = [float(val) for val in input("Set values: ").split()]
+        fuzzy_sets[set_name] = {"type": ftype, "values": values}
     return fuzzy_sets
 
 
@@ -221,62 +208,22 @@ def get_user_input_rule(variables):
         rule_input = input(
             "Enter the rule in this format (IN_variable set operator IN_variable set => OUT_variable set): "
         )
+
         if rule_input.lower() == "x":
             break
 
         rule_parts = rule_input.split()
-        outputPart = False
-        valid = True
-        for part in rule_parts:
-            if outputPart == True:
-                names = []
-                for i in variables:
-                    names.append(i[name])
-                if (
-                    part not in names
-                    and part != "and"
-                    and part != "or"
-                    and part != "not"
-                ):
-                    print("rewrite the fuzzy rule, variables must be stored in the app")
-                    valid = False
-                if part in names and part != "and" and part != "or" and part != "not":
-                    if variables[part].type != "OUT":
-                        print("variable after => must be OUT variable")
-                        valid = False
-                if part == "=>":
-                    print("then part must appear once")
-                    valid = False
-            else:
-                if part == "=>":
-                    outputPart = True
-                names = []
-                for i in variables:
-                    names.append(i[name])
-                if (
-                    part not in names
-                    and part != "and"
-                    and part != "or"
-                    and part != "not"
-                ):
-                    print("rewrite the fuzzy rule, variables must be stored in the app")
-                    valid = False
-                if part in names and part != "and" and part != "or" and part != "not":
-                    if variables[part].type != "IN":
-                        print("variable before => must be IN variable")
-                        valid = False
-        if valid == True:
-            if len(rule_parts) >= 8 and (len(rule_parts) - 2) % 3 == 0:
-                rule = {
-                    "inputs": rule_parts[:-3],
-                    "output": (rule_parts[-2], rule_parts[-1]),
-                }
-                print(rule)
-                rules.append(rule)
-            else:
-                print("Invalid input. Please check the format and variable names.")
+
+        if len(rule_parts) >= 8 and (len(rule_parts) - 2) % 3 == 0:
+            rule = {
+                "inputs": rule_parts[:-3],
+                "output": (rule_parts[-2], rule_parts[-1]),
+            }
+            print(rule)
+            rules.append(rule)
         else:
             print("Invalid input. Please check the format and variable names.")
+
     return rules
 
 
@@ -310,7 +257,7 @@ if __name__ == "__main__":
         if choice == "2":
             var_name = input("Enter the variable's name: ")
 
-            fuzzy_sets = get_user_input_fuzzy_set(var_name, fuzzy_system.variables)
+            fuzzy_sets = get_user_input_fuzzy_set(var_name)
             for set_name, set_data in fuzzy_sets.items():
                 fuzzy_system.add_fuzzy_set(
                     var_name, set_name, set_data["type"], set_data["values"]
