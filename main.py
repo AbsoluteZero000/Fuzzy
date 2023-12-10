@@ -102,7 +102,17 @@ class FuzzySystem:
         )
 
         print("Defuzzification => done")
-        return str(output_variable) + " " + str(predicted_output)
+        maximumValue = 0.0
+        fuzzySet = ""
+        for set_name, fuzzy_set in self.variables[output_variable].fuzzy_sets.items():
+            print(fuzzy_set)
+            fuzzified_values[output_variable][set_name] = self.calculate_membership(
+                value, fuzzy_set
+            )
+            if fuzzified_values[output_variable][set_name] >= maximumValue:
+                maximumValue = fuzzified_values[output_variable][set_name]
+                fuzzySet = fuzzy_set
+        return str(output_variable) + " " + fuzzySet + " " + str(predicted_output)
 
     def calculate_membership(self, value, fuzzy_set):
         ftype = fuzzy_set["type"]
