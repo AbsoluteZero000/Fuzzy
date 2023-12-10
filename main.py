@@ -242,6 +242,25 @@ def get_user_input_rule(variables):
                 "inputs": rule_parts[:-3],
                 "output": (rule_parts[-2], rule_parts[-1]),
             }
+            valid = True
+            outputPart = False
+            for i in range(0, len(rule_parts), 1):
+                part = rule_parts[i]
+                if (
+                    i > 0
+                    and (part == "and" or part == "or" or part == "not")
+                    and rule_parts[i + 1] not in variables
+                ):
+                    valid = False
+                    break
+                if part == "=>" and outputPart == True:
+                    valid = False
+                    break
+                if part == "=>" and outputPart == False:
+                    outputPart = True
+            if valid == False:
+                print("Invalid rule format")
+                continue
             print(rule)
             rules.append(rule)
         else:
