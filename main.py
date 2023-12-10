@@ -246,7 +246,9 @@ def get_user_input_rule(variables):
             outputPart = False
             for i in range(0, len(rule_parts), 1):
                 part = rule_parts[i]
-                if (
+                if (part == "and" or part == "or") and (rule_parts[i + 1] == 'not'):
+                    valid = True
+                elif (
                     i > 0
                     and (part == "and" or part == "or" or part == "not")
                     and rule_parts[i + 1] not in variables
