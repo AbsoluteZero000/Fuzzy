@@ -105,7 +105,6 @@ class FuzzySystem:
         maximumValue = 0.0
         fuzzySet = ""
         for set_name, fuzzy_set in self.variables[output_variable].fuzzy_sets.items():
-            print(fuzzy_set)
             fuzzified_values[output_variable][set_name] = self.calculate_membership(
                 value, fuzzy_set
             )
