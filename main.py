@@ -308,10 +308,20 @@ if __name__ == "__main__":
             crisp_values = {}
             for var_name in fuzzy_system.variables:
                 value = float(input(f"Enter the crisp value for {var_name}: "))
+                while (
+                    fuzzy_system.variables[var_name].range[1] < value
+                    or fuzzy_system.variables[var_name].range[0] > value
+                ):
+                    print("value must be in the range")
+                    value = float(input(f"Enter the crisp value for {var_name}: "))
                 crisp_values[var_name] = value
 
             print("Running the simulation...")
-            predicted_output = fuzzy_system.run_simulation(crisp_values)
+            try:
+                predicted_output = fuzzy_system.run_simulation(crisp_values)
 
-            print(f"The predicted output is: {predicted_output}")
-            break
+                print(f"The predicted output is: {predicted_output}")
+                break
+            except:
+                print("make sure to add needed variables")
+                continue
