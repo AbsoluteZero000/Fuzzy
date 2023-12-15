@@ -123,82 +123,36 @@ class FuzzySystem:
 
     def membership_triangle(self, value, set_values):
         x_points = set_values
-        y_points = []
-        if x_points[0] == x_points[1]:
-            y_points.append(1)
-            y_points.append(1)
-            y_points.append(0)
-        elif x_points[1] == x_points[2]:
-            y_points.append(0)
-            y_points.append(1)
-            y_points.append(1)
+        if x_points[0] <= value <= x_points[1]:
+            x1, y1 = x_points[0], 0.0
+            x2, y2 = x_points[1], 1.0
+        elif x_points[1] < value <= x_points[2]:
+            x1, y1 = x_points[1], 1.0
+            x2, y2 = x_points[2], 0.0
         else:
-            y_points.append(0)
-            y_points.append(1)
-            y_points.append(0)
-        slope = 0.0
-        b = 0
-        if value > x_points[0] and value <= x_points[1]:
-            if x_points[0] == x_points[1]:
-                slope = 1
-            else:
-                slope = (y_points[1] - y_points[0]) / (x_points[1] - x_points[0])
-            b = y_points[0] - (slope * x_points[0])
-            return (slope * value) + b
-        elif value > x_points[1] and value <= x_points[2]:
-            if x_points[1] == x_points[2]:
-                slope = 1
-            else:
-                slope = (y_points[2] - y_points[1]) / (x_points[2] - x_points[1])
-            b = y_points[1] - (slope * x_points[1])
-            return (slope * value) + b
-        else:
-            return 0
+            0.0
+        m = (y2 - y1) / (x2 - x1)
+        c = y1 - m * x1 
+        y = m * value + c
+        return y
 
     def membership_trapezoid(self, value, set_values):
         x_points = set_values
-        y_points = []
-        if x_points[0] == x_points[1]:
-            y_points.append(1)
-            y_points.append(1)
-            y_points.append(1)
-            y_points.append(0)
-        elif x_points[1] == x_points[2]:
-            y_points.append(0)
-            y_points.append(1)
-            y_points.append(1)
-            y_points.append(1)
+        if x_points[0] <= value <= x_points[1]:
+            x1, y1 = x_points[0], 0.0
+            x2, y2 = x_points[1], 1.0
+        elif x_points[1] < value <= x_points[2]:
+            return 1.0
+        elif x_points[2] < value <= x_points[3]:
+            x1, y1 = x_points[2], 1.0
+            x2, y2 = x_points[3], 0.0
         else:
-            y_points.append(0)
-            y_points.append(1)
-            y_points.append(1)
-            y_points.append(0)
-        slope = 0.0
-        b = 0
-        if value > x_points[0] and value <= x_points[1]:
-            if x_points[0] == x_points[1]:
-                slope = 1
-            else:
-                slope = (y_points[1] - y_points[0]) / (x_points[1] - x_points[0])
-            b = y_points[0] - (slope * x_points[0])
-            return (slope * value) + b
-        elif value > x_points[1] and value <= x_points[2]:
-            if x_points[1] == x_points[2]:
-                slope = 1
-            else:
-                slope = (y_points[2] - y_points[1]) / (x_points[2] - x_points[1])
-            b = y_points[1] - (slope * x_points[1])
-            return (slope * value) + b
-        elif value > x_points[2] and value <= x_points[3]:
-            if x_points[2] == x_points[3]:
-                slope = 1
-            else:
-                slope = (y_points[3] - y_points[2]) / (x_points[3] - x_points[2])
-            b = y_points[2] - (slope * x_points[2])
-            return (slope * value) + b
-        else:
-            return 0
-
+            return 0.0
+        m = (y2 - y1) / (x2 - x1)
+        c = y1 - m * x1
+        y = m * value + c
+        return y
+    
     def calculate_centroid(self, set_values):
         return sum(set_values) / len(set_values)
 
