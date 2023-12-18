@@ -34,6 +34,7 @@ class FuzzySystem:
 
         print("Fuzzification => done")
         # Inference
+        print(fuzzified_values)
         aggregated_rules = []
         for rule in self.rules:
             for i in range(0, len(rule["inputs"]), 1):
@@ -83,18 +84,9 @@ class FuzzySystem:
         weighted_sum = 0
         total_membership = 0
         for output_variable, output_set, value in aggregated_rules:
-            for set_name, fuzzy_set in self.variables[
-                output_variable
-            ].fuzzy_sets.items():
-                membership = self.calculate_membership(
-                    value, self.variables[output_variable].fuzzy_sets[output_set]
-                )
-
-            centroid = self.calculate_centroid(
-                self.variables[output_variable].fuzzy_sets[output_set]["values"]
-            )
-            weighted_sum += membership * centroid
-            total_membership += membership
+            centroid = self.calculate_centroid(self.variables[output_variable].fuzzy_sets[output_set]["values"])
+            weighted_sum += value * centroid
+            total_membership += value
 
         predicted_output = weighted_sum / total_membership if total_membership != 0 else 0
 
@@ -104,12 +96,11 @@ class FuzzySystem:
         fuzzySet = ""
 
         for set_name, fuzzy_set in self.variables[output_variable].fuzzy_sets.items():
-            fuzzifiedOutput = self.calculate_membership(value, fuzzy_set)
+            fuzzifiedOutput = self.calculate_membership(predicted_output, fuzzy_set)
             if fuzzifiedOutput >= maximumValue:
                 maximumValue = fuzzifiedOutput
                 fuzzySet = set_name
-
-        #can you use the fuzzy set to get the set name that belongs to predictied output
+        
         return output_variable + " " + fuzzySet + " " + str(predicted_output)
 
     def calculate_membership(self, value, fuzzy_set):
@@ -130,9 +121,9 @@ class FuzzySystem:
             x1, y1 = x_points[1], 1.0
             x2, y2 = x_points[2], 0.0
         else:
-            0.0
+            return 0.0
         m = (y2 - y1) / (x2 - x1)
-        c = y1 - m * x1 
+        c = y1 - m * x1
         y = m * value + c
         return y
 
@@ -152,7 +143,7 @@ class FuzzySystem:
         c = y1 - m * x1
         y = m * value + c
         return y
-    
+
     def calculate_centroid(self, set_values):
         return sum(set_values) / len(set_values)
 
