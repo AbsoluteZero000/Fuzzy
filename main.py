@@ -130,7 +130,7 @@ class FuzzySystem:
             x1, y1 = x_points[1], 1.0
             x2, y2 = x_points[2], 0.0
         else:
-            0.0
+            return 0.0
         m = (y2 - y1) / (x2 - x1)
         c = y1 - m * x1 
         y = m * value + c
@@ -291,9 +291,15 @@ if __name__ == "__main__":
         # running on crisp values
         elif choice == "4":
             crisp_values = {}
+            if(fuzzy_system.variables == {}):
+                print("Please enter fuzzy variables")
+                continue
             for var_name in fuzzy_system.variables:
-                if(fuzzy_system.variables[var_name].type == "OUT"):
+                if(fuzzy_system.variables[var_name].type.lower() == "out"):
                     continue
+                if(fuzzy_system.variables[var_name].fuzzy_sets == {}):
+                    print(f"Please enter fuzzy set")
+                    break
                 value = float(input(f"Enter the crisp value for {var_name}: "))
                 while (
                     fuzzy_system.variables[var_name].range[1] < value
@@ -304,7 +310,11 @@ if __name__ == "__main__":
                 crisp_values[var_name] = value
 
             print("Running the simulation...")
-            predicted_output = fuzzy_system.run_simulation(crisp_values)
+            try:
+                predicted_output = fuzzy_system.run_simulation(crisp_values)
 
-            print(f"The predicted output is: {predicted_output}")
-            break
+                print(f"The predicted output is: {predicted_output}")
+                break
+    # print(fuzzy_system.membership_triangle(37.5, [50, 100, 100]))
+            except:
+                print("Please enter fuzzy sets")
